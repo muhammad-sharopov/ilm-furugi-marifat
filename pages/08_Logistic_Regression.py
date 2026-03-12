@@ -102,7 +102,7 @@ if "modeling" in st.session_state:
                 target_col=data["target_col"],
                 top_features=top_features
             )
-        st.success("✅ Результаты отправлены в ИИ. Перейдите в раздел 'Чат с ИИ' и спросите о метриках!")
+        st.success("✅ Результаты отправлены в ИИ. Нажмите кнопку чата внизу, чтобы спросить о метриках!")
     
     # Разделитель и Экспорт
     st.markdown("---")

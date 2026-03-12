@@ -53,7 +53,7 @@ def reset_ai_memory():
     st.session_state["chat_history"] = [{"role": "system", "content": SYSTEM_PROMPT}]
     # Также можно очищать контекстные переменные, если они хранятся отдельно
 
-def _call_ai_api(messages, model="meta-llama/llama-3.3-70b-instruct:free"):
+def _call_ai_api(messages, model="arcee-ai/trinity-large-preview:free"):
     """Внутренняя функция запроса к API."""
     if not API_KEY:
         return "❌ API-ключ не найден. Проверьте настройки (.env или secrets)."
@@ -88,7 +88,7 @@ def _call_ai_api(messages, model="meta-llama/llama-3.3-70b-instruct:free"):
 
 # === Публичные функции ===
 
-def send_user_message(user_text: str, model="stepfun/step-3.5-flash:free") -> str:
+def send_user_message(user_text: str, model="arcee-ai/trinity-large-preview:free") -> str:
     """
     Отправляет сообщение пользователя в единый чат и возвращает ответ.
     Используется в основном окне чата.
@@ -144,14 +144,14 @@ def connect_ai_context(df) -> None:
     # 2. Обновляем историю без вызова API
     history = _get_history()
     
-    # Добавляем контекст как сообщение пользователя (или системы, но user надежнее для моделей)
-    history.append({"role": "user", "content": msg_content})
+    # Добавляем контекст как сообщение пользователя (hidden — не отображается в чате)
+    history.append({"role": "user", "content": msg_content, "hidden": True})
     
-    # Добавляем фейковый ответ ассистента
-    history.append({"role": "assistant", "content": "Контекст данных принят. Я готов отвечать на вопросы по этому датасету."})
+    # Добавляем фейковый ответ ассистента (тоже скрытый)
+    history.append({"role": "assistant", "content": "Контекст данных принят. Я готов отвечать на вопросы по этому датасету.", "hidden": True})
 
     
-def notify_ai_about_context(df, user_goal="", model="stepfun/step-3.5-flash:free") -> str:
+def notify_ai_about_context(df, user_goal="", model="arcee-ai/trinity-large-preview:free") -> str:
     """
     DEPRECATED: Используйте connect_ai_context для тихого подключения.
     Оставлено для совместимости, если где-то еще вызывается.
@@ -160,14 +160,13 @@ def notify_ai_about_context(df, user_goal="", model="stepfun/step-3.5-flash:free
     return "Функция устарела. Используйте кнопку 'Подключить ИИ' в новом интерфейсе."
 
 
-def notify_ai_about_correlation(df, model="stepfun/step-3.5-flash:free") -> str:
-    """Фиксирует найденные корреляции в истории чата."""
+def notify_ai_about_correlation(df, model="arcee-ai/trinity-large-preview:free") -> str:
+    """Фиксирует найденные корреляции в истории чата (скрытно)."""
     numeric_df = df.select_dtypes(include="number")
     if numeric_df.shape[1] < 2:
         return "Недостаточно данных для корреляции."
 
     corr_matrix = numeric_df.corr().abs()
-    # Берем верхний треугольник без диагонали
     import numpy as np
     mask = np.triu(np.ones_like(corr_matrix, dtype=bool), k=1)
     corr_stacked = corr_matrix.where(mask).stack().sort_values(ascending=False)
@@ -178,13 +177,13 @@ def notify_ai_about_correlation(df, model="stepfun/step-3.5-flash:free") -> str:
     for (col1, col2), val in top_corrs.items():
         text_report += f"- {col1} <-> {col2}: {val:.2f}\n"
         
-    text_report += "\nПрокомментируй эти связи."
+    text_report += "\nЗапомни эти корреляции. Если спросят — объясни их простым языком."
 
     history = _get_history()
-    history.append({"role": "user", "content": text_report})
+    history.append({"role": "user", "content": text_report, "hidden": True})
     
     resp = _call_ai_api(history, model)
-    history.append({"role": "assistant", "content": resp})
+    history.append({"role": "assistant", "content": resp, "hidden": True})
     
     return resp
 
@@ -205,8 +204,8 @@ def connect_ai_pivot(pivot_table, index_cols_str, value_col, agg_func) -> None:
     )
     
     history = _get_history()
-    history.append({"role": "user", "content": msg})
-    history.append({"role": "assistant", "content": "Контекст сводной таблицы принят."})
+    history.append({"role": "user", "content": msg, "hidden": True})
+    history.append({"role": "assistant", "content": "Контекст сводной таблицы принят.", "hidden": True})
 
 
 def connect_ai_model_results(metrics: dict, model_type: str, target_col: str, top_features: list = None) -> None:
@@ -236,11 +235,11 @@ def connect_ai_model_results(metrics: dict, model_type: str, target_col: str, to
     msg += "\nЗапомни эти результаты. Если я спрошу — объясни метрики простым языком."
     
     history = _get_history()
-    history.append({"role": "user", "content": msg})
-    history.append({"role": "assistant", "content": f"Результаты модели {model_type} приняты. Готов объяснить метрики или дать рекомендации."})
+    history.append({"role": "user", "content": msg, "hidden": True})
+    history.append({"role": "assistant", "content": f"Результаты модели {model_type} приняты. Готов объяснить метрики или дать рекомендации.", "hidden": True})
 
 
-def notify_ai_about_pivot(pivot_table, index_cols_str, value_col, agg_func, model="stepfun/step-3.5-flash:free") -> str:
+def notify_ai_about_pivot(pivot_table, index_cols_str, value_col, agg_func, model="arcee-ai/trinity-large-preview:free") -> str:
     """DEPRECATED: Use connect_ai_pivot instead."""
     return "Функция устарела."
 

@@ -1,5 +1,5 @@
 import streamlit as st
-from Utils.ui_config import show_splash, init_api_key, init_session
+from Utils.ui_config import show_splash, init_api_key, init_session, render_float_chat_btn, render_sidebar_context
 
 # --- Config (Must be first) ---
 st.set_page_config(page_title="EduStat AI", layout="wide")
@@ -57,11 +57,14 @@ pages = {
     "Моделирование": [
         st.Page("pages/08_Logistic_Regression.py", title="Логистическая регрессия", icon="📈"),
         st.Page("pages/09_CatBoost_Modeling.py", title="CatBoost моделирование", icon="🐈"),
-    ],
-    "Помощь": [
-        st.Page("pages/10_AI_Chat.py", title="Чат с ИИ", icon="💬"),
     ]
 }
 
 pg = st.navigation(pages)
 pg.run()
+
+# --- Глобальные UI компоненты (работают на всех страницах) ---
+from Utils.ui_config import render_ai_chat_overlay
+render_ai_chat_overlay()
+render_float_chat_btn()
+render_sidebar_context()
